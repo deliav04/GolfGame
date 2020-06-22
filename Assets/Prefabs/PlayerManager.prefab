@@ -1,0 +1,176 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3173226643630141407
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6094851141119976537}
+  - component: {fileID: 3911131232320475677}
+  - component: {fileID: 4804557342993983597}
+  - component: {fileID: 2215470622270365258}
+  m_Layer: 0
+  m_Name: PlayerManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6094851141119976537
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3173226643630141407}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 868.47754, y: 349.60773, z: -2333.128}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3911131232320475677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3173226643630141407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneId: 0
+  serverOnly: 0
+  m_AssetId: 
+  hasSpawned: 0
+--- !u!114 &4804557342993983597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3173226643630141407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23dd16963b0f14343bf1f6911b9f387f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  cardFaces:
+  - {fileID: 21300000, guid: 25df817494bec454bbc35d644738e85a, type: 3}
+  - {fileID: 21300000, guid: c9a5a2672fba2ef4782fcc74d91c8248, type: 3}
+  - {fileID: 21300000, guid: 0372e1405eb50104db50e78077e45166, type: 3}
+  - {fileID: 21300000, guid: a598402364c1c5f43a324c31b36cf58d, type: 3}
+  - {fileID: 21300000, guid: 81e311321eab7a347a801a3320af4d6f, type: 3}
+  - {fileID: 21300000, guid: 8036610626e7168469c911680c00ec90, type: 3}
+  - {fileID: 21300000, guid: d2477291f549f22469f6b39124714d62, type: 3}
+  - {fileID: 21300000, guid: aaad0f5f0bc87f948bf963d39ba23027, type: 3}
+  - {fileID: 21300000, guid: 2f81725f67749e9459bfd5707f230714, type: 3}
+  - {fileID: 21300000, guid: 176b21e96594b574ebda6232a18ea6d1, type: 3}
+  - {fileID: 21300000, guid: 237e6814694be944aa687a27a99728ce, type: 3}
+  - {fileID: 21300000, guid: 5ed9a15ccb8503a47a007a350cf3c117, type: 3}
+  - {fileID: 21300000, guid: f29f1128e4276c544beb1fb94a194701, type: 3}
+  - {fileID: 21300000, guid: ba2946928915e854ba658eace67d9670, type: 3}
+  - {fileID: 21300000, guid: d8909df9eb5b6e9429d191997868d7c5, type: 3}
+  - {fileID: 21300000, guid: 67faa4d8c7aad1b45881662b57db5cf9, type: 3}
+  - {fileID: 21300000, guid: ae9ec755ada149144a384acecbdc933e, type: 3}
+  - {fileID: 21300000, guid: ad5bd61fa1d19b44f9f32651289a49ed, type: 3}
+  - {fileID: 21300000, guid: db94526b275580348a58c22f1a18dc04, type: 3}
+  - {fileID: 21300000, guid: 527371e0bbc34f44ebd98a92767dbf5c, type: 3}
+  - {fileID: 21300000, guid: 46adf8bea3aed6949a6c1b428b89df91, type: 3}
+  - {fileID: 21300000, guid: e2753c4fb6c43a4459d72617b9f99a49, type: 3}
+  - {fileID: 21300000, guid: c648003e586f8364d929215bc73ec6e5, type: 3}
+  - {fileID: 21300000, guid: bcc43ddfeb8b00a46983ef13bb243c72, type: 3}
+  - {fileID: 21300000, guid: 2db3efef95c309746be93479cff39f24, type: 3}
+  - {fileID: 21300000, guid: c8aecf96e3a751549971cf2af730c059, type: 3}
+  - {fileID: 21300000, guid: 641344864fbc5cf419442fe65106dee6, type: 3}
+  - {fileID: 21300000, guid: 384e6827ea9ac3e4e8d944ff1d38deb5, type: 3}
+  - {fileID: 21300000, guid: 50657dd3849dcfd43a33c0a7191798fc, type: 3}
+  - {fileID: 21300000, guid: 50fa33a84f390234eae1ffe35d22b648, type: 3}
+  - {fileID: 21300000, guid: 677f3c76ea8c7144a82dc641de308597, type: 3}
+  - {fileID: 21300000, guid: 5dd9c03ac91321341a51e61be204faa3, type: 3}
+  - {fileID: 21300000, guid: 6b8f2a32dcc888b45b9fc5ace5e9362d, type: 3}
+  - {fileID: 21300000, guid: 8adc0f12c445afa4da3202dcf9811072, type: 3}
+  - {fileID: 21300000, guid: 7d09da6e2d52a5241a106a277649b8f1, type: 3}
+  - {fileID: 21300000, guid: c5e4f27c7b9ba6e42a1c510136122c32, type: 3}
+  - {fileID: 21300000, guid: 36e97b162eb24b947a7baac9d0b85fda, type: 3}
+  - {fileID: 21300000, guid: 6652bafa04d29c74aadffeeae0d83227, type: 3}
+  - {fileID: 21300000, guid: b74e75777169db2438c541109e6cbcf0, type: 3}
+  - {fileID: 21300000, guid: 7a14d2d2cc0ffd748b710121798f363d, type: 3}
+  - {fileID: 21300000, guid: 0c59ed82c5b65b54ab52532846705a07, type: 3}
+  - {fileID: 21300000, guid: 9049d83a4fcc2004bbff720f3cb2f99b, type: 3}
+  - {fileID: 21300000, guid: 88b602c9376f54d43b35ce8e580526f3, type: 3}
+  - {fileID: 21300000, guid: cdfd941509dceee47af83e026f8e56f6, type: 3}
+  - {fileID: 21300000, guid: c023e023fd7f0de43ae4af5f76be3f38, type: 3}
+  - {fileID: 21300000, guid: 03a8099f070c2ee4fa61d674f1ac1c12, type: 3}
+  - {fileID: 21300000, guid: d944dbf6f598e4c46a941bfabfab4cc5, type: 3}
+  - {fileID: 21300000, guid: c1bd73724058dcb42a4ec53a3b55959e, type: 3}
+  - {fileID: 21300000, guid: 911db30a0c1593247b0ffe9fc70e8b1e, type: 3}
+  - {fileID: 21300000, guid: 6ebac980d3ff9fa489895f43b3ca61cf, type: 3}
+  - {fileID: 21300000, guid: 0aa9b2ed167d87b46a43c0eeb259da84, type: 3}
+  - {fileID: 21300000, guid: fc1ead27c5a24324ebbfc24399f9b91c, type: 3}
+  - {fileID: 21300000, guid: 9ef1c7442136c104cadc02f70c235b10, type: 3}
+  - {fileID: 21300000, guid: 9ef1c7442136c104cadc02f70c235b10, type: 3}
+  CardPrefab: {fileID: 2612326639055667228, guid: 69fbe203d41f47e4fa701eb2df295266,
+    type: 3}
+  PlayerAreaPrefab: {fileID: 6995774237213547121, guid: b68ae163261f934469fbfca829a4c155,
+    type: 3}
+  Background: {fileID: 0}
+  Discard: {fileID: 0}
+  Server: {fileID: 0}
+  server: {fileID: 0}
+  deckButtonPrefab: {fileID: 2297213199716282977, guid: 817a68377e41f8b4e8d65e2ac3831843,
+    type: 3}
+  startButton: {fileID: 0}
+  hand: []
+  playerAreas: []
+  playerNum: 0
+--- !u!114 &2215470622270365258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3173226643630141407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7424c1070fad4ba2a7a96b02fbeb4bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OnClientConnected:
+    m_PersistentCalls:
+      m_Calls: []
+  OnClientDataReceived:
+    m_PersistentCalls:
+      m_Calls: []
+  OnClientError:
+    m_PersistentCalls:
+      m_Calls: []
+  OnClientDisconnected:
+    m_PersistentCalls:
+      m_Calls: []
+  OnServerConnected:
+    m_PersistentCalls:
+      m_Calls: []
+  OnServerDataReceived:
+    m_PersistentCalls:
+      m_Calls: []
+  OnServerError:
+    m_PersistentCalls:
+      m_Calls: []
+  OnServerDisconnected:
+    m_PersistentCalls:
+      m_Calls: []
+  port: 7777
+  NoDelay: 1
+  serverMaxMessageSize: 16384
+  serverMaxReceivesPerTick: 10000
+  clientMaxMessageSize: 16384
+  clientMaxReceivesPerTick: 1000
