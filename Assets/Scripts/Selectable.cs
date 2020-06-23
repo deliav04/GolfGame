@@ -13,17 +13,17 @@ public class Selectable : NetworkBehaviour
     // Sprite card1Face;
     
 
-    public void OnPointerClick() {
-        string parent = this.transform.parent.gameObject.name;
-        if (parent == "Discard") {
-            // UpdateSprite1 = GetComponent<UpdateSprite>();
-            // card1 = this.gameObject;
-            // card1Name = card1.name;
-            // card1Face = UpdateSprite1.cardFace;
+    // public void OnPointerClick() {
+    //     string parent = this.transform.parent.gameObject.name;
+    //     if (parent == "Discard") {
+    //         // UpdateSprite1 = GetComponent<UpdateSprite>();
+    //         // card1 = this.gameObject;
+    //         // card1Name = card1.name;
+    //         // card1Face = UpdateSprite1.cardFace;
             
-        } else {
-            faceUp = !faceUp;            
-        }
-    }
+    //     } else {
+    //         faceUp = !faceUp;            
+    //     }
+    // }
     
 }

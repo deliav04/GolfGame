@@ -25,6 +25,7 @@ public class UpdateSprite : NetworkBehaviour
         NetworkIdentity networkIdentity = NetworkClient.connection.identity;
         playerManager = networkIdentity.GetComponent<PlayerManager>();
         int i = 0;
+
         string s = this.name;
         if (s[0] == 'D') {
             i +=13;
@@ -37,6 +38,7 @@ public class UpdateSprite : NetworkBehaviour
         }
 
         if (s[1] == 'A') {
+            i +=0;
         } else if (s[1] == 'J') {
             i += 10;
         } else if (s[1] == 'Q') {
@@ -44,7 +46,11 @@ public class UpdateSprite : NetworkBehaviour
         } else if (s[1] == 'K') {
             i += 12;
         } else {
-            i += ((int)Char.GetNumericValue(s[1]) - 1);
+            if (s.Length == 3) {
+                i += 9;
+            } else {
+                i += ((int)Char.GetNumericValue(s[1]) - 1);
+            }
         }
         // foreach(string card in deck) {
         //     if (this.name == card) {
@@ -54,6 +60,7 @@ public class UpdateSprite : NetworkBehaviour
         //     i++;
         // }
 
+        // Debug.Log(i);
         cardFace = playerManager.cardFaces[i];
 
         image = GetComponent<Image>();

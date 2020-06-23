@@ -108,5 +108,6 @@ public class Server : NetworkBehaviour
     public void UpdateDeck() {
         deck.RemoveAt(deck.Count - 1);
         deck.Callback += DeckChanged;
-    }
+    } 
+
 }

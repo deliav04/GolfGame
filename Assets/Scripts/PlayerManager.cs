@@ -178,6 +178,7 @@ public class PlayerManager : NetworkBehaviour
         card.name = n;
         card.GetComponent<Selectable>().faceUp = true;
         card.transform.SetParent(Discard.transform, false);
+        card.gameObject.tag = "DiscardCard";
     }
 
 
@@ -255,17 +256,17 @@ public class PlayerManager : NetworkBehaviour
         
     }
         
-    [ClientRpc]
-    void RpcDealCards(string[] names, GameObject[] cards, int player) {
-        // int area = player - playerNum;
-        // if (area >= numPlayers) { area -= numPlayers; } else if (area < 0 ) {--area;}
-        // Debug.Log(area);
-        for (int i = 0; i < 6; i++) {
-            (cards[i]).name = names[i];
-            (cards[i]).GetComponent<Selectable>().faceUp = true;
-            (cards[i]).transform.SetParent((playerAreas[player]).transform, false);
-       }
-    }
+    // [ClientRpc]
+    // void RpcDealCards(string[] names, GameObject[] cards, int player) {
+    //     // int area = player - playerNum;
+    //     // if (area >= numPlayers) { area -= numPlayers; } else if (area < 0 ) {--area;}
+    //     // Debug.Log(area);
+    //     for (int i = 0; i < 6; i++) {
+    //         (cards[i]).name = names[i];
+    //         (cards[i]).GetComponent<Selectable>().faceUp = true;
+    //         (cards[i]).transform.SetParent((playerAreas[player]).transform, false);
+    //    }
+    // }
 
     [TargetRpc]
     void TargetDealCards(NetworkConnection conn, string[] names, GameObject[] cards, int playerNum) {
@@ -274,12 +275,45 @@ public class PlayerManager : NetworkBehaviour
         for (int i = 0; i < num; i++ ) {
             if (index == playerAreas.Count) { index = 0;}
             Debug.Log(index);
+            if (index == 0) {
+                cards[i].gameObject.tag = "PlayerCard";
+            }
             cards[i].name = names[i];
             cards[i].GetComponent<Selectable>().faceUp = true;
             (cards[i]).transform.SetParent((playerAreas[index]).transform, false);
             index++;
         }
     }
+
+
+    [Command]
+    public void CmdInitialFlip() {
+        RpcInitialFlip();
+        Debug.Log("All players flipped cards");
+    }
+
+
+    [ClientRpc]
+    public void RpcInitialFlip() {
+        GameObject card1 =  null;
+        GameObject card2 =  null;
+
+        // while (!card1 || !card2) {
+            if (Input.GetMouseButtonDown(0)) {
+                RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+                if (hit) {
+                    
+                    if (hit.collider.CompareTag("PlayerCard")) {
+                        Debug.Log("Player card clicked");
+                    } else if (hit.collider.CompareTag("DiscardCard")) {
+                        Debug.Log("Discard card clicked");
+                    }
+
+                }           
+            }
+        // }
+    }
+
 }
 
 

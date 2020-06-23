@@ -32,7 +32,8 @@ public class Golf : NetworkBehaviour
     // GameObject[] playerAreas = new GameObject[NUMPLAYERS];
     
     public PlayerManager playerManager;
-
+    // public GameObject Server;
+    // public Server server;
 
     //public List<string> deck;
 
@@ -133,5 +134,6 @@ public class Golf : NetworkBehaviour
         NetworkIdentity networkIdentity = NetworkClient.connection.identity;
         playerManager = networkIdentity.GetComponent<PlayerManager>();
         playerManager.CmdStartGame();
+        playerManager.CmdInitialFlip();
     }
  }
