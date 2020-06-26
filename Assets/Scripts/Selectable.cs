@@ -6,6 +6,9 @@ using Mirror;
 public class Selectable : NetworkBehaviour
 {
     public bool faceUp = false;
+
+    public GameManager GameManager;
+
     // public UpdateSprite UpdateSprite1;
     // public UpdateSprite UpdateSprite2;
     // public GameObject card1 =  null;
@@ -13,17 +16,22 @@ public class Selectable : NetworkBehaviour
     // Sprite card1Face;
     
 
-    // public void OnPointerClick() {
-    //     string parent = this.transform.parent.gameObject.name;
-    //     if (parent == "Discard") {
-    //         // UpdateSprite1 = GetComponent<UpdateSprite>();
-    //         // card1 = this.gameObject;
-    //         // card1Name = card1.name;
-    //         // card1Face = UpdateSprite1.cardFace;
-            
-    //     } else {
-    //         faceUp = !faceUp;            
-    //     }
-    // }
+    void Start() {
+        GameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+    }
+
+    public void OnPointerClick() {
+        if (GameManager.GameState == "InitialCardFlip") {
+            if (this.gameObject.tag == "PlayerCard") {
+                if (GameManager.InitialCard1 == null) {
+                    GameManager.InitialCard1 = this.gameObject;
+                } else if (GameManager.InitialCard2 == null) {
+                    if (this.gameObject != GameManager.InitialCard1) {
+                        GameManager.InitialCard2 = this.gameObject;
+                    }
+                }
+            }
+        }    
+    }
     
 }

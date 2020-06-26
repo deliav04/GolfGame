@@ -110,4 +110,35 @@ public class Server : NetworkBehaviour
         deck.Callback += DeckChanged;
     } 
 
+    public IEnumerator SelectCards() {
+        GameObject card1 = null;
+        GameObject card2 =  null;
+        Debug.Log("Waiting for click");
+        while (card1 == null) {
+            if (Input.GetMouseButtonDown(0)) {
+                Debug.Log("Clicked");
+                // Vector2 mousePosition = Camera.main.ScreenToWorldPoint(new Vector2(Input.mousePosition.x, Input.mousePosition.y));
+                // RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+                
+                Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
+
+                RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
+               
+                if (hit.collider != null) {
+                    Debug.Log("Hit");
+                    if (hit.collider.CompareTag("PlayerCard")) {
+                        card1 = hit.collider.gameObject;
+                        Debug.Log("Player card clicked");
+                    } else if (hit.collider.CompareTag("DiscardCard")) {
+                        Debug.Log("Discard card clicked");
+                    }
+
+                }           
+            }
+        yield return null;
+        }
+        
+    }
+
 }

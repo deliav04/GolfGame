@@ -13,8 +13,7 @@ public class PlayerManager : NetworkBehaviour
     public GameObject PlayerAreaPrefab;
     public GameObject Background;
     public GameObject Discard;
-    public GameObject Server;
-    public Server server;
+    public GameManager GameManager;
     public GameObject deckButtonPrefab;
     public GameObject startButton;
     public GameObject mainCanvas;
@@ -62,11 +61,9 @@ public class PlayerManager : NetworkBehaviour
 
     [Server]
     public override void OnStartServer() {
-        
         Background = GameObject.Find("Background");
         Discard = GameObject.Find("Discard");
-        Server = GameObject.Find("Server");
-        server = Server.GetComponent<Server>();
+        GameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         startButton = GameObject.Find("StartButton");
         mainCanvas = GameObject.Find("Main Canvas");
     }
@@ -74,7 +71,7 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     void RpcUpdateDeck(int n) {
         for (int i = 0; i < n; i++) {
-            server.UpdateDeck();
+            GameManager.UpdateDeck();
         }
     }
     
@@ -109,16 +106,16 @@ public class PlayerManager : NetworkBehaviour
     
         Background = GameObject.Find("Background");
         Discard = GameObject.Find("Discard");
-        Server = GameObject.Find("Server");
-        server = Server.GetComponent<Server>();
         startButton = GameObject.Find("StartButton");
         mainCanvas = GameObject.Find("Main Canvas");
+        GameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+
 
         
         // players.Callback += PlayersChanged;
         //CmdAddPlayer();
 
-        deck = server.deck;
+        deck = GameManager.deck;
         numPlayers = NetworkServer.connections.Count;
         Debug.Log("Type: " + NetworkServer.connections.GetType());
         //if (isLocalPlayer) { 
@@ -136,7 +133,7 @@ public class PlayerManager : NetworkBehaviour
 
 
     // public void GolfDeal() {
-    //     if (isServer) { CmdGolfDeal(); }
+    //     if (isgameManager) { CmdGolfDeal(); }
     // }
 
     // [Command]
@@ -161,15 +158,19 @@ public class PlayerManager : NetworkBehaviour
 
     [Command]
     public void CmdDrawCard() {
-        server.deck.Callback += DeckChanged;
-        deck = server.deck;
-        GameObject newCard = Instantiate(CardPrefab, new Vector3(0,0,0), Quaternion.identity);
-        newCard.GetComponent<Selectable>().faceUp = true;
-        newCard.name = deck.Last<string>();
-        NetworkServer.Spawn(newCard);
-        newCard.transform.SetParent(Discard.transform, false);
-        RpcDrawCard(newCard, deck.Last<string>());
-        server.UpdateDeck();
+        if (isServer) {
+            if (connectionToClient == GameManager.CurrPlayer) {
+                GameManager.deck.Callback += DeckChanged;
+                deck = GameManager.deck;
+                GameObject newCard = Instantiate(CardPrefab, new Vector3(0,0,0), Quaternion.identity);
+                newCard.GetComponent<Selectable>().faceUp = true;
+                newCard.name = deck.Last<string>();
+                NetworkServer.Spawn(newCard);
+                newCard.transform.SetParent(Discard.transform, false);
+                RpcDrawCard(newCard, deck.Last<string>());
+                GameManager.UpdateDeck();
+            }
+        }
         //RpcUpdateDeck(1);        
     }
 
@@ -189,11 +190,14 @@ public class PlayerManager : NetworkBehaviour
         deckButton.name = "DeckButton";
         NetworkServer.Spawn(deckButton);
         deckButton.transform.SetParent(mainCanvas.transform, false);
-        startButton.SetActive(false);
+        //startButton.SetActive(false);
         RpcStartGame(deckButton);
 
         // Create player areas
         numPlayers = NetworkServer.connections.Count;
+
+        GameManager.Scores = new int[numPlayers];
+        GameManager.AddPlayers();
 
         cardStrings = new string[numPlayers];
         cardObjects =  new GameObject[numPlayers];
@@ -204,21 +208,19 @@ public class PlayerManager : NetworkBehaviour
             RpcSpawnArea(playerArea);        
         }
 
-        //wait();
 
-        // Deal cards CURRENTLY DEALING WRONG - SHOULD BE ONE CARD PER PLAYER
-        
+        // Deal cards        
         for (int j = 0; j < 6; j++) {
             for (int i = 0; i < numPlayers; i++) {
-                server.deck.Callback += DeckChanged;
-                deck = server.deck;
+                GameManager.deck.Callback += DeckChanged;
+                deck = GameManager.deck;
                 GameObject newCard = Instantiate(CardPrefab, new Vector3(0,0,0), Quaternion.identity);
-                newCard.GetComponent<Selectable>().faceUp = true;
+                // newCard.GetComponent<Selectable>().faceUp = true;
                 newCard.name = deck.Last<string>();
                 cardStrings[i] = deck.Last<string>();
                 cardObjects[i] = newCard;
                 NetworkServer.Spawn(newCard);
-                server.UpdateDeck();
+                GameManager.UpdateDeck();
 
             }
             int index = 0;
@@ -226,10 +228,10 @@ public class PlayerManager : NetworkBehaviour
                 TargetDealCards(conn, cardStrings, cardObjects, index);
                 index++;
             }
-    
-            //RpcDealCards(cardStrings, cardObjects, i);
         }
 
+        Debug.Log("Set up complete changing GameState to InitialCardFlip");
+        GameManager.ChangeGameState("InitialCardFlip");
     }
 
     [ClientRpc]
@@ -237,15 +239,6 @@ public class PlayerManager : NetworkBehaviour
         deckButton.transform.SetParent(mainCanvas.transform, false);
         startButton.SetActive(false);
     }
-
-
-
-    // [Command]
-    // public void CmdSpawnArea() {
-    //     GameObject playerArea = Instantiate(PlayerAreaPrefab, new Vector3(0,0,0), Quaternion.identity);
-    //     NetworkServer.Spawn(playerArea);
-    //     RpcSpawnArea(playerArea);
-    // }
 
     [ClientRpc]
     void RpcSpawnArea(GameObject playerArea) {
@@ -256,64 +249,81 @@ public class PlayerManager : NetworkBehaviour
         
     }
         
-    // [ClientRpc]
-    // void RpcDealCards(string[] names, GameObject[] cards, int player) {
-    //     // int area = player - playerNum;
-    //     // if (area >= numPlayers) { area -= numPlayers; } else if (area < 0 ) {--area;}
-    //     // Debug.Log(area);
-    //     for (int i = 0; i < 6; i++) {
-    //         (cards[i]).name = names[i];
-    //         (cards[i]).GetComponent<Selectable>().faceUp = true;
-    //         (cards[i]).transform.SetParent((playerAreas[player]).transform, false);
-    //    }
-    // }
-
+  
     [TargetRpc]
     void TargetDealCards(NetworkConnection conn, string[] names, GameObject[] cards, int playerNum) {
         int num = names.Length;
         int index = num - playerNum;
         for (int i = 0; i < num; i++ ) {
             if (index == playerAreas.Count) { index = 0;}
-            Debug.Log(index);
+            
             if (index == 0) {
                 cards[i].gameObject.tag = "PlayerCard";
             }
             cards[i].name = names[i];
-            cards[i].GetComponent<Selectable>().faceUp = true;
             (cards[i]).transform.SetParent((playerAreas[index]).transform, false);
             index++;
         }
     }
 
-
     [Command]
-    public void CmdInitialFlip() {
-        RpcInitialFlip();
-        Debug.Log("All players flipped cards");
+    public void CmdFlipCards(GameObject card1, GameObject card2) {    
+        RpcFlipCards(card1, card2);
+        Debug.Log(GameManager.numReady + " players ready to play");
+        if (isServer) { GameManager.numReady++; }
+        Debug.Log(GameManager.numReady + " players ready to play");
     }
-
 
     [ClientRpc]
-    public void RpcInitialFlip() {
-        GameObject card1 =  null;
-        GameObject card2 =  null;
-
-        // while (!card1 || !card2) {
-            if (Input.GetMouseButtonDown(0)) {
-                RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-                if (hit) {
-                    
-                    if (hit.collider.CompareTag("PlayerCard")) {
-                        Debug.Log("Player card clicked");
-                    } else if (hit.collider.CompareTag("DiscardCard")) {
-                        Debug.Log("Discard card clicked");
-                    }
-
-                }           
-            }
-        // }
+    void RpcFlipCards(GameObject card1, GameObject card2) {
+        card1.GetComponent<Selectable>().faceUp = true;
+        card2.GetComponent<Selectable>().faceUp = true;
     }
 
+
+
+    
+    // private IEnumerator SelectCards() {
+    //     GameObject card1 = null;
+    //     GameObject card2 =  null;
+    //     Debug.Log("Waiting for click");
+    //     while (card1 == null) {
+    //         if (Input.GetMouseButtonDown(0)) {
+    //             Debug.Log("Clicked");
+    //             Debug.Log(Input.mousePosition);
+    //             // Vector3 mousePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10));
+    //             // RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+                
+
+    //             RaycastHit2D hit = Physics2D.GetRayIntersection(Camera.main.ScreenPointToRay(Input.mousePosition));
+    //             // Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+    //             // Vector3 mousePos2D = new Vector2(mousePos.x, mousePos.y);
+
+    //             // RaycastHit2D hit = Physics2D.Raycast(mousePos2D, -Vector2.up);
+    //             // RaycastHit  hit;
+    //             // Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                  
+
+    //             // Vector2 rayPos = new Vector2(Camera.main.ScreenToWorldPoint(Input.mousePosition).x, Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
+    //             // RaycastHit2D hit=Physics2D.Raycast(rayPos, -Vector2.zero, 0f);
+
+
+    //             if (hit.collider) {
+
+    //                 Debug.Log("Hit");
+    //                 if (hit.collider.CompareTag("PlayerCard")) {
+    //                     card1 = hit.collider.gameObject;
+    //                     Debug.Log("Player card clicked");
+    //                 } else if (hit.collider.CompareTag("DiscardCard")) {
+    //                     Debug.Log("Discard card clicked");
+    //                 }
+
+    //             }           
+    //         }
+    //     yield return null;
+    //     }
+        
+    // }
 }
 
 

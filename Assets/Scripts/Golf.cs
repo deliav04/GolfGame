@@ -133,7 +133,8 @@ public class Golf : NetworkBehaviour
     public void StartGame() {
         NetworkIdentity networkIdentity = NetworkClient.connection.identity;
         playerManager = networkIdentity.GetComponent<PlayerManager>();
+        Debug.Log("Starting Game");
         playerManager.CmdStartGame();
-        playerManager.CmdInitialFlip();
+        Debug.Log("Game started");
     }
  }

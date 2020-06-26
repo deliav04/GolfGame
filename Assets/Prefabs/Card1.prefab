@@ -17,8 +17,7 @@ GameObject:
   - component: {fileID: 6910215423348001558}
   - component: {fileID: 1110737100946281028}
   - component: {fileID: 1926648117240661458}
-  - component: {fileID: -8692704917206122839}
-  - component: {fileID: 2242918344687159663}
+  - component: {fileID: 856816769092723126}
   m_Layer: 5
   m_Name: Card1
   m_TagString: Untagged
@@ -228,7 +227,7 @@ MonoBehaviour:
   localPositionSensitivity: 0.01
   localRotationSensitivity: 0.01
   localScaleSensitivity: 0.01
---- !u!61 &-8692704917206122839
+--- !u!61 &856816769092723126
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -252,26 +251,5 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1.03, y: 1.5}
+  m_Size: {x: 48, y: 68}
   m_EdgeRadius: 0
---- !u!50 &2242918344687159663
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2612326639055667228}
-  m_BodyType: 2
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
