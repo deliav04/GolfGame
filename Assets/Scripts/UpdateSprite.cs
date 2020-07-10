@@ -52,7 +52,6 @@ public class UpdateSprite : NetworkBehaviour
                 i += 9;
             } else {
                 i += ((int)Char.GetNumericValue(s[1]) - 1);
-                Debug.Log("Name: " + s + " int parsed: " + (int)Char.GetNumericValue(s[1]));
             }
         }
         // foreach(string card in deck) {
@@ -154,7 +153,6 @@ public class UpdateSprite : NetworkBehaviour
                     i += 9;
                 } else {
                     i += ((int)Char.GetNumericValue(s[1]) - 1);
-                    Debug.Log("Name: " + s + " int parsed: " + (int)Char.GetNumericValue(s[1]));
                 }
             }
             cardFace = GameManager.cardFaces[i];

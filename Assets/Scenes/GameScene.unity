@@ -959,6 +959,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Background
       objectReference: {fileID: 0}
+    - target: {fileID: 3041232803234459049, guid: c8aa27e4765949e4daa93496bec74427,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6033416502909036568, guid: c8aa27e4765949e4daa93496bec74427,
         type: 3}
       propertyPath: sceneId

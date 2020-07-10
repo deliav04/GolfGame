@@ -7,6 +7,7 @@ TagManager:
   - PlayerCard
   - DiscardCard
   - PlayerArea
+  - ScoreText
   layers:
   - Default
   - TransparentFX
