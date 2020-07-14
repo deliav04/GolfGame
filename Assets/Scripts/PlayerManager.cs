@@ -29,8 +29,10 @@ public class PlayerManager : NetworkBehaviour
 
     public string[] cardStrings;
     public GameObject[] cardObjects;
+    public string[] PlayerNames;
+    public GameObject[] PlayerAreas;
 
-    public List<GameObject> PlayerAreas = new List<GameObject>();
+
     public List<GameObject> PlayerScores = new List<GameObject>();
 
     public SyncListString deck;
@@ -87,9 +89,6 @@ public class PlayerManager : NetworkBehaviour
 
 
         deck = GameManager.deck;
-        numPlayers = NetworkServer.connections.Count;
-        Debug.Log("Type: " + NetworkServer.connections.GetType());
-        playerNum = numPlayers - 1;
     }
 
     
@@ -147,23 +146,40 @@ public class PlayerManager : NetworkBehaviour
 
         GameManager.NumPlayers = numPlayers;
         GameManager.ScoresObject.GetComponent<RectTransform>().sizeDelta = new Vector2(numPlayers*100, 300);
+        GameManager.Scores = new int[numPlayers];
         GameManager.AddPlayers();
 
         cardStrings = new string[numPlayers];
         cardObjects =  new GameObject[numPlayers];
+        PlayerNames = new string[numPlayers];
+        PlayerAreas = new GameObject[numPlayers];
+
+        // TODO: Let users input names
+        for (int i = 0; i < numPlayers; i++) {
+            PlayerNames[i] = "Player " + (i + 1).ToString();
+        }
 
         for (int i = 0; i < numPlayers; i++) {
             GameObject playerArea = Instantiate(PlayerAreaPrefab, new Vector3(0,0,0), Quaternion.identity);
             NetworkServer.Spawn(playerArea);
-            playerArea.tag = "PlayerArea";
+            playerArea.transform.GetChild(0).tag = "PlayerArea";
             if (isServer) {
-                playerArea.name = (PlayerAreas.Count + 1).ToString();
-                PlayerAreas.Add(playerArea);
+                playerArea.name = i.ToString();
+                PlayerAreas[i] = (playerArea.transform.GetChild(0).gameObject);
                 playerArea.transform.SetParent(Background.transform, false);
                 playerArea.transform.SetAsFirstSibling();
             }
-            RpcSpawnArea(playerArea);        
+
+            int playerIndex = i;
+            foreach (Mirror.NetworkConnectionToClient conn in NetworkServer.connections.Values) {
+                if (playerIndex == numPlayers ) { playerIndex = 0; }
+                TargetSpawnArea(conn, playerArea, PlayerNames, playerIndex);        
+                playerIndex++; 
+            }
         }
+
+        
+
 
 
         // ____________________________________ Deal cards ____________________________________         
@@ -220,14 +236,17 @@ public class PlayerManager : NetworkBehaviour
         startButton.SetActive(false);
     }
 
-    [ClientRpc]
-    void RpcSpawnArea(GameObject playerArea) {
-        playerArea.name = (PlayerAreas.Count + 1).ToString();
-        playerArea.tag = "PlayerArea";
-        PlayerAreas.Add(playerArea);
+    [TargetRpc]
+    void TargetSpawnArea(NetworkConnection conn, GameObject playerArea, string[] playerNames, int playerNum) {
+        int num = playerNames.Length;
+        int index = num - playerNum;
+        if (index == num) { index = 0; }
+            
+        playerArea.name = playerNum.ToString();
+        playerArea.transform.GetChild(0).tag = "PlayerArea";
         playerArea.transform.SetParent(Background.transform, false);
         playerArea.transform.SetAsFirstSibling();
-        
+        playerArea.transform.GetChild(1).gameObject.GetComponent<Text>().text = playerNames[index];        
     }
         
   
@@ -296,14 +315,17 @@ public class PlayerManager : NetworkBehaviour
             OldCard.GetComponent<Selectable>().faceUp = true;
 
             RpcSwapCards(OldCard, NewCard);
-            
-            if (LastRound && GameManager.CurrPlayerIndex == LastPlayer) {
+
+            GameManager.deck.Callback += DeckChanged;
+            deck = GameManager.deck;
+            if (LastRound && GameManager.CurrPlayerIndex == LastPlayer || deck.Count == 0) {
                 RpcFlipAllCards();
                 GameManager.ChangeGameState("Scoring");
                 StartCoroutine(ScoreRound());
                 
             }
             
+            // TODO: Unhighlight player's name
 
             GameManager.CurrPlayerIndex++;
             if (GameManager.CurrPlayerIndex == GameManager.PlayerConnections.Count) { 
@@ -317,6 +339,9 @@ public class PlayerManager : NetworkBehaviour
                     GameManager.CurrPlayerIndex = 0;
                 }
             }
+
+            // TODO: Highlight current player's name
+
             GameManager.NewCardFlipped = false;
             
             if (NumFlipped > GameManager.MaxFlipped) {
@@ -379,7 +404,6 @@ public class PlayerManager : NetworkBehaviour
 
         yield return new WaitForSeconds(3.0f);
         
-        GameManager.Scores = new int[GameManager.NumPlayers];
         GameManager.ScoresObject.SetActive(true);
         if (GameManager.ScoresObject.transform.childCount == 0) {
             for (int i = 1; i <= GameManager.NumPlayers; i++) {
@@ -474,12 +498,16 @@ public class PlayerManager : NetworkBehaviour
                 }
             }
 
-            GameManager.Scores[i] += score;
+            if (!GameManager.SETROUNDS && GameManager.Scores[i] < GameManager.MAXSCORE) { //What if score = maxscore??
+                GameManager.Scores[i] += score;
+            }
         }        
 
 
         int c = 0;
-        GameObject[] ScoreTexts = GameObject.FindGameObjectsWithTag("ScoreText");        
+        GameObject[] ScoreTexts = GameObject.FindGameObjectsWithTag("ScoreText");
+
+        Debug.Log("Score texts found: " + ScoreTexts.Length);       
         foreach (GameObject text in ScoreTexts) {
                 int score = GameManager.Scores[c];
                 text.GetComponent<Text>().text += "\n" + score.ToString();
@@ -488,7 +516,7 @@ public class PlayerManager : NetworkBehaviour
         }
         
         for (int n = 0; n < GameManager.Scores.Length; n++) {
-            if (GameManager.Scores[n] > GameManager.MAXSCORE) {
+            if (!GameManager.SETROUNDS && GameManager.Scores[n] > GameManager.MAXSCORE) {
                 if (PlayerScores[n] != null) {
                     Debug.Log("Removing player. Score: " + GameManager.Scores[n]);
                     PlayerScores[n].GetComponent<Text>().color = Color.red;

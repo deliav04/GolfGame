@@ -63,6 +63,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  numPlayers: 0
   cardFaces:
   - {fileID: 21300000, guid: 25df817494bec454bbc35d644738e85a, type: 3}
   - {fileID: 21300000, guid: c9a5a2672fba2ef4782fcc74d91c8248, type: 3}
@@ -120,18 +121,21 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 9ef1c7442136c104cadc02f70c235b10, type: 3}
   CardPrefab: {fileID: 2612326639055667228, guid: 69fbe203d41f47e4fa701eb2df295266,
     type: 3}
-  PlayerAreaPrefab: {fileID: 6995774237213547121, guid: b68ae163261f934469fbfca829a4c155,
+  PlayerAreaPrefab: {fileID: 4521832864725888859, guid: 6c37dec7fcd30cc40b8c880c35e0ef27,
     type: 3}
   Background: {fileID: 0}
   Discard: {fileID: 0}
-  Server: {fileID: 0}
-  server: {fileID: 0}
+  GameManager: {fileID: 0}
   deckButtonPrefab: {fileID: 2297213199716282977, guid: 817a68377e41f8b4e8d65e2ac3831843,
     type: 3}
   startButton: {fileID: 0}
-  hand: []
-  playerAreas: []
+  mainCanvas: {fileID: 0}
+  cardStrings: []
+  cardObjects: []
+  PlayerAreas: []
+  PlayerScores: []
   playerNum: 0
+  NumCardsFlipped: 0
 --- !u!114 &2215470622270365258
 MonoBehaviour:
   m_ObjectHideFlags: 0
