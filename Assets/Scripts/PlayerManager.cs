@@ -170,11 +170,12 @@ public class PlayerManager : NetworkBehaviour
                 playerArea.transform.SetAsFirstSibling();
             }
 
-            int playerIndex = i;
-            foreach (Mirror.NetworkConnectionToClient conn in NetworkServer.connections.Values) {
-                if (playerIndex == numPlayers ) { playerIndex = 0; }
-                TargetSpawnArea(conn, playerArea, PlayerNames, playerIndex);        
-                playerIndex++; 
+            int playerIndex = 0;
+            foreach (Mirror.NetworkConnectionToClient conn in GameManager.PlayerConnections) {
+                if (conn != null) {
+                    TargetSpawnArea(conn, playerArea, PlayerNames, i, playerIndex, GameManager.NumPlayers);        
+                    playerIndex++; 
+                }
             }
         }
 
@@ -204,10 +205,13 @@ public class PlayerManager : NetworkBehaviour
                     }
              }
 
+            Debug.Log("Num players: " + GameManager.NumPlayers);
             int index = 0;
-            foreach (Mirror.NetworkConnectionToClient conn in NetworkServer.connections.Values) {
-                TargetDealCards(conn, cardStrings, cardObjects, index);
-                index++; 
+            foreach (Mirror.NetworkConnectionToClient conn in GameManager.PlayerConnections) {
+                if (conn != null) {
+                    TargetDealCards(conn, cardStrings, cardObjects, index);
+                    index++; 
+                }
             }
         }
 
@@ -237,16 +241,20 @@ public class PlayerManager : NetworkBehaviour
     }
 
     [TargetRpc]
-    void TargetSpawnArea(NetworkConnection conn, GameObject playerArea, string[] playerNames, int playerNum) {
-        int num = playerNames.Length;
-        int index = num - playerNum;
-        if (index == num) { index = 0; }
-            
-        playerArea.name = playerNum.ToString();
+    void TargetSpawnArea(NetworkConnection conn, GameObject playerArea, string[] playerNames, int toName, int thisPlayer, int players) {
         playerArea.transform.GetChild(0).tag = "PlayerArea";
         playerArea.transform.SetParent(Background.transform, false);
         playerArea.transform.SetAsFirstSibling();
-        playerArea.transform.GetChild(1).gameObject.GetComponent<Text>().text = playerNames[index];        
+
+        int index = toName + thisPlayer;
+        Debug.Log("Players: " + players + " index: " + index);
+        if (index >= players) { 
+            index -= players;
+            Debug.Log("index after subtraction " + index);
+        }
+        Debug.Log("This player: " + thisPlayer + " naming: " + toName + " index: " + index);
+        playerArea.transform.GetChild(1).gameObject.GetComponent<Text>().text = playerNames[index];     
+
     }
         
   
@@ -325,8 +333,6 @@ public class PlayerManager : NetworkBehaviour
                 
             }
             
-            // TODO: Unhighlight player's name
-
             GameManager.CurrPlayerIndex++;
             if (GameManager.CurrPlayerIndex == GameManager.PlayerConnections.Count) { 
                 GameManager.CurrPlayerIndex = 0; 
@@ -340,7 +346,7 @@ public class PlayerManager : NetworkBehaviour
                 }
             }
 
-            // TODO: Highlight current player's name
+            HighlightPlayer();
 
             GameManager.NewCardFlipped = false;
             
@@ -377,15 +383,44 @@ public class PlayerManager : NetworkBehaviour
         OldCard.GetComponent<Selectable>().faceUp = true;
 
     }
+    [Server] 
+    void HighlightPlayer() {
+        int playerIndex = 0;
+        foreach (Mirror.NetworkConnectionToClient conn in GameManager.PlayerConnections) {
+            if (conn != null) {
+                TargetHighlightPlayer(conn, GameManager.CurrPlayerIndex, playerIndex );
+                playerIndex++;
+            }
+        }
+    }
+
+    [Command]
+    public void CmdHighlightCurrPlayer() {
+        HighlightPlayer();
+    }
+
+    [TargetRpc]
+    void TargetHighlightPlayer(NetworkConnection conn, int toHighlight, int thisPlayer) {
+        GameObject[] areas = GameObject.FindGameObjectsWithTag("PlayerArea");
+        int index = toHighlight - thisPlayer;
+        if (index < 0) { index += GameManager.NumPlayers;}
+        areas[index].transform.parent.GetChild(1).gameObject.GetComponent<Text>().color = Color.white;
+        index--;
+        if (index < 0) { index += GameManager.NumPlayers;}
+        areas[index].transform.parent.GetChild(1).gameObject.GetComponent<Text>().color = Color.black;
+
+    }
 
 // ____________________________________ End Round ____________________________________
 
     [Command] 
     public void CmdEndRound() {
-        GameManager.RoundOver = true;
-        GameManager.LastPlayer = GameManager.CurrPlayerIndex - 2; //index already incremented at this point
-        if (GameManager.LastPlayer == -2) { GameManager.LastPlayer = GameManager.NumPlayers - 2; }
-        if (GameManager.LastPlayer == -1) { GameManager.LastPlayer = GameManager.NumPlayers - 1; }
+        if (!GameManager.RoundOver) {
+            GameManager.RoundOver = true;
+            GameManager.LastPlayer = GameManager.CurrPlayerIndex - 2; //index already incremented at this point
+            if (GameManager.LastPlayer == -2) { GameManager.LastPlayer = GameManager.NumPlayers - 2; }
+            if (GameManager.LastPlayer == -1) { GameManager.LastPlayer = GameManager.NumPlayers - 1; }
+        }
     }
 
 
@@ -590,10 +625,17 @@ public class PlayerManager : NetworkBehaviour
 
         GameManager.GenerateDeck();
 
+        Debug.Log("Size of deck: " + GameManager.deck.Count);
+
+
         cardStrings = new string[GameManager.NumPlayers];
         cardObjects =  new GameObject[GameManager.NumPlayers];
 
         GameObject[] areas = GameObject.FindGameObjectsWithTag("PlayerArea");
+
+        Debug.Log("Player areas found: " + areas.Length);
+
+        Debug.Log("Number of players: " + GameManager.NumPlayers);
 
          // ____________________________________ Deal cards ____________________________________         
         for (int j = 0; j < 6; j++) {
@@ -606,6 +648,7 @@ public class PlayerManager : NetworkBehaviour
                 cardStrings[i] = deck.Last<string>();
                 cardObjects[i] = newCard;
                 NetworkServer.Spawn(newCard);
+                Debug.Log("Card Spawnned  " + newCard);
                 GameManager.UpdateDeck();
             }
 
@@ -620,9 +663,11 @@ public class PlayerManager : NetworkBehaviour
              }
 
             int index = 0;
-            foreach (Mirror.NetworkConnectionToClient conn in NetworkServer.connections.Values) {
-                TargetDealCards(conn, cardStrings, cardObjects, index);
-                index++; 
+            foreach (Mirror.NetworkConnectionToClient conn in GameManager.PlayerConnections) {
+                if (conn != null) {
+                    TargetDealCards(conn, cardStrings, cardObjects, index);
+                    index++; 
+                }
             }
         }
 
