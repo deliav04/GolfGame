@@ -134,7 +134,7 @@ public class PlayerManager : NetworkBehaviour
     [Command]
     public void CmdStartGame() {
         // ____________________________________ Create deck button ____________________________________ 
-        GameObject deckButton = Instantiate(deckButtonPrefab, new Vector3(-37,0,0), Quaternion.identity);
+        GameObject deckButton = Instantiate(deckButtonPrefab, new Vector3(-37,-49,0), Quaternion.identity);
         deckButton.name = "DeckButton";
         NetworkServer.Spawn(deckButton);
         deckButton.transform.SetParent(mainCanvas.transform, false);
@@ -145,7 +145,6 @@ public class PlayerManager : NetworkBehaviour
         numPlayers = NetworkServer.connections.Count;
 
         GameManager.NumPlayers = numPlayers;
-        GameManager.ScoresObject.GetComponent<RectTransform>().sizeDelta = new Vector2(numPlayers*100, 300);
         GameManager.Scores = new int[numPlayers];
         GameManager.AddPlayers();
 
@@ -228,6 +227,17 @@ public class PlayerManager : NetworkBehaviour
         GameManager.UpdateDeck();
 
 
+        // ____________________________________ Score Board Setup ____________________________________         
+        for (int i = 1; i <= GameManager.NumPlayers; i++) {
+            GameObject scoreText = Instantiate(GameManager.ScoreTextPrefab, new Vector3(0,0,0), Quaternion.identity);
+            NetworkServer.Spawn(scoreText);
+            PlayerScores.Add(scoreText);
+            scoreText.GetComponent<Text>().text = "Player " + i.ToString() + "\n 0";
+            scoreText.transform.SetParent(GameManager.ScoresObject.transform, false);
+            RpcScoreRound(scoreText, i);
+        }
+
+
         // Debug.Log("Set up complete changing GameState to InitialCardFlip");
         GameManager.ChangeGameState("InitialCardFlip");
     }
@@ -269,6 +279,7 @@ public class PlayerManager : NetworkBehaviour
             if (index == 0) {
                 cards[i].gameObject.tag = "PlayerCard";
             }
+            Debug.Log(cards[i]);
             cards[i].name = names[i];
             (cards[i]).transform.SetParent((areas[index]).transform, false);
             index++;
@@ -328,33 +339,33 @@ public class PlayerManager : NetworkBehaviour
             deck = GameManager.deck;
             if (LastRound && GameManager.CurrPlayerIndex == LastPlayer || deck.Count == 0) {
                 RpcFlipAllCards();
+                Debug.Log("All cards flipped?: " + Time.time);
                 GameManager.ChangeGameState("Scoring");
-                StartCoroutine(ScoreRound());
+                ScoreRound();
+            } else {
                 
-            }
-            
-            GameManager.CurrPlayerIndex++;
-            if (GameManager.CurrPlayerIndex == GameManager.PlayerConnections.Count) { 
-                GameManager.CurrPlayerIndex = 0; 
-            }
-            GameManager.CurrPlayer = GameManager.PlayerConnections[GameManager.CurrPlayerIndex];
-
-            while (GameManager.CurrPlayer == null) {
                 GameManager.CurrPlayerIndex++;
-                if (GameManager.CurrPlayerIndex == GameManager.PlayerConnections.Count) {
-                    GameManager.CurrPlayerIndex = 0;
+                if (GameManager.CurrPlayerIndex == GameManager.PlayerConnections.Count) { 
+                    GameManager.CurrPlayerIndex = 0; 
                 }
+                GameManager.CurrPlayer = GameManager.PlayerConnections[GameManager.CurrPlayerIndex];
+
+                while (GameManager.CurrPlayer == null) {
+                    GameManager.CurrPlayerIndex++;
+                    if (GameManager.CurrPlayerIndex == GameManager.PlayerConnections.Count) {
+                        GameManager.CurrPlayerIndex = 0;
+                    }
+                }
+
+                HighlightPlayer();
+
+                GameManager.NewCardFlipped = false;
+                
+                if (NumFlipped > GameManager.MaxFlipped) {
+                    GameManager.MaxFlipped = NumFlipped;
+                }
+
             }
-
-            HighlightPlayer();
-
-            GameManager.NewCardFlipped = false;
-            
-            if (NumFlipped > GameManager.MaxFlipped) {
-                GameManager.MaxFlipped = NumFlipped;
-            }
-
-
 
         } else {
             if (!FaceUp) {
@@ -385,6 +396,7 @@ public class PlayerManager : NetworkBehaviour
     }
     [Server] 
     void HighlightPlayer() {
+        GameManager.PlayerHighlighted = true;
         int playerIndex = 0;
         foreach (Mirror.NetworkConnectionToClient conn in GameManager.PlayerConnections) {
             if (conn != null) {
@@ -404,11 +416,25 @@ public class PlayerManager : NetworkBehaviour
         GameObject[] areas = GameObject.FindGameObjectsWithTag("PlayerArea");
         int index = toHighlight - thisPlayer;
         if (index < 0) { index += GameManager.NumPlayers;}
+        Debug.Log("Highlighting index: " + index);
         areas[index].transform.parent.GetChild(1).gameObject.GetComponent<Text>().color = Color.white;
         index--;
         if (index < 0) { index += GameManager.NumPlayers;}
         areas[index].transform.parent.GetChild(1).gameObject.GetComponent<Text>().color = Color.black;
 
+    }
+
+    [Command]
+    public void CmdUnhighlightAll() {
+        RpcUnhighlightAll();
+    }
+
+    [ClientRpc]
+    void RpcUnhighlightAll() {
+        GameObject[] areas = GameObject.FindGameObjectsWithTag("PlayerArea");
+        foreach (GameObject area in areas) {
+            area.transform.parent.GetChild(1).gameObject.GetComponent<Text>().color = Color.black;
+        }
     }
 
 // ____________________________________ End Round ____________________________________
@@ -418,6 +444,7 @@ public class PlayerManager : NetworkBehaviour
         if (!GameManager.RoundOver) {
             GameManager.RoundOver = true;
             GameManager.LastPlayer = GameManager.CurrPlayerIndex - 2; //index already incremented at this point
+            Debug.Log("Last player set: " + GameManager.LastPlayer);
             if (GameManager.LastPlayer == -2) { GameManager.LastPlayer = GameManager.NumPlayers - 2; }
             if (GameManager.LastPlayer == -1) { GameManager.LastPlayer = GameManager.NumPlayers - 1; }
         }
@@ -427,30 +454,17 @@ public class PlayerManager : NetworkBehaviour
     [ClientRpc]
     void RpcFlipAllCards() {
         foreach (Transform area in Background.transform) {
-            foreach (Transform card in area) {
+            Transform playerArea = area.GetChild(0);
+            foreach (Transform card in playerArea) {
                 card.gameObject.GetComponent<Selectable>().faceUp = true;
             }
         }
+        Debug.Log("Cards flipped: " + Time.time);
+        
     }
-
-    [Server]
-    public IEnumerator ScoreRound() {
-        Debug.Log("Scoring now");
-
-        yield return new WaitForSeconds(3.0f);
-        
-        GameManager.ScoresObject.SetActive(true);
-        if (GameManager.ScoresObject.transform.childCount == 0) {
-            for (int i = 1; i <= GameManager.NumPlayers; i++) {
-                GameObject scoreText = Instantiate(GameManager.ScoreTextPrefab, new Vector3(0,0,0), Quaternion.identity);
-                NetworkServer.Spawn(scoreText);
-                PlayerScores.Add(scoreText);
-                scoreText.GetComponent<Text>().text = "Player " + i.ToString();
-                scoreText.transform.SetParent(GameManager.ScoresObject.transform, false);
-                RpcScoreRound(scoreText, i);
-            }
-        }
-        
+    [Server] 
+    public void ScoreRound() {
+        Debug.Log("Scoring now");        
 
         GameObject[] areas = GameObject.FindGameObjectsWithTag("PlayerArea");
         string[] names = new string[6];
@@ -545,11 +559,15 @@ public class PlayerManager : NetworkBehaviour
         Debug.Log("Score texts found: " + ScoreTexts.Length);       
         foreach (GameObject text in ScoreTexts) {
                 int score = GameManager.Scores[c];
-                text.GetComponent<Text>().text += "\n" + score.ToString();
+                string[] old = text.GetComponent<Text>().text.Split('\n');
+                string name = old[0];
+                Debug.Log(name + "\n" + score.ToString());
+                text.GetComponent<Text>().text = name + "\n" + score.ToString();
                 RpcUpdateScore(text, score);
             c++;
         }
         
+        int NumPlayersRemoved = 0;
         for (int n = 0; n < GameManager.Scores.Length; n++) {
             if (!GameManager.SETROUNDS && GameManager.Scores[n] > GameManager.MAXSCORE) {
                 if (PlayerScores[n] != null) {
@@ -557,26 +575,33 @@ public class PlayerManager : NetworkBehaviour
                     PlayerScores[n].GetComponent<Text>().color = Color.red;
                     PlayerScores[n] = null;
                     GameManager.PlayerConnections[n] = null;
-                    GameManager.NumPlayers--;
-                    Destroy(areas[n]);
+                    NumPlayersRemoved++;
                 }
             }
         }
 
         GameManager.RoundNumber++;
-        yield return new WaitForSeconds(3.0f);
 
+
+        StartCoroutine(ShowScore(NumPlayersRemoved));
+    }
+
+
+    [Server]
+    public IEnumerator ShowScore(int NumPlayersRemoved) {
+        yield return new WaitForSeconds(5.0f);
+  
 
         if (GameManager.SETROUNDS) {
             if (GameManager.NUMROUNDS == GameManager.RoundNumber) {
                 // TODO: End Game
             } else {
-                StartCoroutine(RestartRound());
+                RestartRound(NumPlayersRemoved);
             }
         } else {
-            if (GameManager.NumPlayers > 1) {
-                StartCoroutine(RestartRound());
-
+            Debug.Log("Players: " + GameManager.NumPlayers + " Removed: " + NumPlayersRemoved);
+            if ((GameManager.NumPlayers - NumPlayersRemoved) > 1) {
+                RestartRound(NumPlayersRemoved);
             } else {
                 // TODO: End Game
             }
@@ -588,11 +613,9 @@ public class PlayerManager : NetworkBehaviour
 
     [ClientRpc] 
     void RpcScoreRound(GameObject text, int i) {
-        GameManager.ScoresObject.SetActive(true);
         GameManager.ScoresObject.transform.SetAsLastSibling();
-        GameManager.ScoresObject.GetComponent<RectTransform>().sizeDelta = new Vector2(GameManager.NumPlayers*100, 300);
         text.transform.SetParent(GameManager.ScoresObject.transform, false);
-        text.GetComponent<Text>().text = "Player " + i.ToString();
+        text.GetComponent<Text>().text = "Player " + i.ToString() + "\n 0";
     }
 
     [ClientRpc] 
@@ -600,19 +623,23 @@ public class PlayerManager : NetworkBehaviour
         if (score > GameManager.MAXSCORE) {
             text.GetComponent<Text>().color = Color.red;
         }
-        text.GetComponent<Text>().text += "\n" + score.ToString();
+        string[] old = text.GetComponent<Text>().text.Split('\n');
+        string name = old[0];
+        Debug.Log(name);        
+        text.GetComponent<Text>().text = name + "\n" + score.ToString();
     }
 
 // ____________________________________ Start New Round ____________________________________
 
     [Server]
-    IEnumerator RestartRound() {
-
-        GameManager.ScoresObject.SetActive(false);
+    void RestartRound(int NumPlayersRemoved) {
+        RpcUnhighlightAll();
         RpcReset();
 
-        foreach (Transform area in Background.transform) {
-            foreach (Transform card in area) {
+        GameObject[] areas = GameObject.FindGameObjectsWithTag("PlayerArea");
+
+        foreach (GameObject area in areas) {
+            foreach (Transform card in area.transform) {
                 Destroy(card.gameObject);
             }
         }
@@ -623,6 +650,12 @@ public class PlayerManager : NetworkBehaviour
 
         Debug.Log("Old Cards Destroyed");
 
+        for (int num = 0; num < NumPlayersRemoved; num++) {
+            Destroy(areas[num]);
+            GameManager.NumPlayers--;
+
+        }
+
         GameManager.GenerateDeck();
 
         Debug.Log("Size of deck: " + GameManager.deck.Count);
@@ -631,7 +664,7 @@ public class PlayerManager : NetworkBehaviour
         cardStrings = new string[GameManager.NumPlayers];
         cardObjects =  new GameObject[GameManager.NumPlayers];
 
-        GameObject[] areas = GameObject.FindGameObjectsWithTag("PlayerArea");
+        areas = GameObject.FindGameObjectsWithTag("PlayerArea");
 
         Debug.Log("Player areas found: " + areas.Length);
 
@@ -648,19 +681,12 @@ public class PlayerManager : NetworkBehaviour
                 cardStrings[i] = deck.Last<string>();
                 cardObjects[i] = newCard;
                 NetworkServer.Spawn(newCard);
+                newCard.transform.SetParent(areas[i].transform, false);
                 Debug.Log("Card Spawnned  " + newCard);
                 GameManager.UpdateDeck();
             }
 
 
-
-             if (isServer) {
-                int num = cardStrings.Length;
-                for (int i = 0; i < num; i++ ) {
-                    cardObjects[i].name = cardStrings[i];
-                    (cardObjects[i]).transform.SetParent((areas[i]).transform, false);
-                }
-             }
 
             int index = 0;
             foreach (Mirror.NetworkConnectionToClient conn in GameManager.PlayerConnections) {
@@ -690,8 +716,6 @@ public class PlayerManager : NetworkBehaviour
         GameManager.MaxFlipped = 2;
 
         GameManager.ChangeGameState("InitialCardFlip");
-        
-        yield return null; 
     }
 
 
@@ -700,8 +724,6 @@ public class PlayerManager : NetworkBehaviour
         GameManager.numReady = 0;
         GameManager.RoundOver = false;
         NumCardsFlipped = 0;
-
-        GameManager.ScoresObject.SetActive(false);
     }
 
 }

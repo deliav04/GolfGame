@@ -4,10 +4,10 @@
 TagManager:
   serializedVersion: 2
   tags:
+  - ScoreText
+  - PlayerArea
   - PlayerCard
   - DiscardCard
-  - PlayerArea
-  - ScoreText
   layers:
   - Default
   - TransparentFX
@@ -42,9 +42,6 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: Background
-    uniqueID: 29397479
-    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
