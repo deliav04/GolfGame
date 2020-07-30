@@ -135,6 +135,9 @@ public class Golf : NetworkBehaviour
         playerManager = networkIdentity.GetComponent<PlayerManager>();
         Debug.Log("Starting Game");
         playerManager.CmdStartGame();
+        GameObject Background = GameObject.Find("Background");
+        Background.transform.GetChild(0).gameObject.SetActive(false);
+        Background.transform.GetChild(0).gameObject.SetActive(true);
         Debug.Log("Game started");
     }
  }
